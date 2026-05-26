@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🌈 Mundo de las Vocales</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --a: #FF6B6B;
+      --e: #FFD93D;
+      --i: #6BCB77;
+      --o: #4D96FF;
+      --u: #C77DFF;
+      --bg: #FFF8F0;
+      --card: #ffffff;
+      --text: #2D2D2D;
+      --shadow: 0 8px 32px rgba(0,0,0,0.10);
+      --radius: 24px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Floating bubbles background */
+    .bubbles {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 0; overflow: hidden;
+    }
+    .bubble {
+      position: absolute; border-radius: 50%; opacity: 0.12;
+      animation: floatUp linear infinite;
+    }
+    @keyframes floatUp {
+      0% { transform: translateY(100vh) scale(0.5); opacity: 0; }
+      10% { opacity: 0.12; }
+      90% { opacity: 0.12; }
+      100% { transform: translateY(-120px) scale(1.1); opacity: 0; }
+    }
+
+    /* HEADER */
+    header {
+      position: relative; z-index: 10;
+      text-align: center;
+      padding: 40px 20px 20px;
+    }
+    header h1 {
+      font-family: 'Fredoka One', cursive;
+      font-size: clamp(2.4rem, 7vw, 4.5rem);
+      background: linear-gradient(135deg, var(--a), var(--e), var(--i), var(--o), var(--u));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(2px 3px 0 rgba(0,0,0,0.08));
+      line-height: 1.1;
+    }
+    header p {
+      margin-top: 8px;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #888;
+    }
+
+    /* VOWEL PILLS */
+    .vowel-pills {
+      display: flex; justify-content: center; gap: 12px;
+      flex-wrap: wrap; margin: 20px auto 0; max-width: 500px;
+    }
+    .pill {
+      font-family: 'Fredoka One', cursive;
+      font-size: 2rem;
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff;
+      cursor: pointer;
+      transition: transform 0.18s, box-shadow 0.18s;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.13);
+      user-select: none;
+      animation: pillBounce 2s ease-in-out infinite;
+    }
+    .pill:hover { transform: scale(1.18) rotate(-5deg); }
+    .pill.A { background: var(--a); animation-delay: 0s; }
+    .pill.E { background: var(--e); color: #333; animation-delay: 0.2s; }
+    .pill.I { background: var(--i); animation-delay: 0.4s; }
+    .pill.O { background: var(--o); animation-delay: 0.6s; }
+    .pill.U { background: var(--u); animation-delay: 0.8s; }
+    @keyframes pillBounce {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    /* NAV TABS */
+    .tabs {
+      position: relative; z-index: 10;
+      display: flex; justify-content: center; gap: 10px;
+      flex-wrap: wrap; padding: 30px 16px 0;
+    }
+    .tab-btn {
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800; font-size: 1rem;
+      border: none; border-radius: 50px;
+      padding: 12px 24px; cursor: pointer;
+      background: #fff;
+      color: #666;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      background: linear-gradient(135deg, #FF6B6B, #C77DFF);
+      color: #fff;
+      box-shadow: 0 6px 20px rgba(199,125,255,0.35);
+      transform: translateY(-2px);
+    }
+    .tab-btn:hover:not(.active) { background: #f0f0f0; transform: translateY(-1px); }
+
+    /* MAIN CONTENT */
+    main {
+      position: relative; z-index: 10;
+      max-width: 900px; margin: 0 auto;
+      padding: 30px 16px 120px;
+    }
+
+    .game-section { display: none; animation: fadeIn 0.4s ease; }
+    .game-section.active { display: block; }
+    @keyframes fadeIn { from { opacity:0; transform: translateY(16px); } to { opacity:1; transform: translateY(0); } }
+
+    /* CARDS */
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 28px;
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+    }
+    .card h2 {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.8rem; margin-bottom: 6px;
+    }
+    .card .subtitle { color: #999; font-weight: 700; margin-bottom: 20px; font-size: 0.95rem; }
+
+    /* ===== GAME 1: TOUCH THE VOWEL ===== */
+    #game-touch .vowel-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+      gap: 14px; margin-top: 16px;
+    }
+    .letter-btn {
+      font-family: 'Fredoka One', cursive;
+      font-size: 2.2rem;
+      border: none; border-radius: 20px;
+      padding: 18px 10px; cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      background: #f3f3f3; color: #333;
+    }
+    .letter-btn.vowel-yes { background: linear-gradient(135deg, #6BCB77, #4D96FF); color: #fff; }
+    .letter-btn:hover { transform: scale(1.08); }
+    .letter-btn.correct-flash { animation: correctAnim 0.5s ease; }
+    .letter-btn.wrong-flash { animation: wrongAnim 0.5s ease; }
+    @keyframes correctAnim {
+      0%,100% { transform: scale(1); }
+      50% { transform: scale(1.25); background: #6BCB77; }
+    }
+    @keyframes wrongAnim {
+      0%,100% { transform: translateX(0); }
+      25% { transform: translateX(-8px); background: #FF6B6B; }
+      75% { transform: translateX(8px); }
+    }
+
+    .score-box {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: linear-gradient(135deg, #FFD93D, #FF6B6B);
+      color: #fff; border-radius: 50px;
+      padding: 8px 20px; font-weight: 800; font-size: 1.1rem;
+      margin-bottom: 16px; box-shadow: 0 4px 12px rgba(255,107,107,0.3);
+    }
+
+    #target-vowel-display {
+      font-family: 'Fredoka One', cursive;
+      font-size: 5rem; text-align: center;
+      margin: 10px 0 20px;
+      line-height: 1;
+      filter: drop-shadow(3px 4px 0 rgba(0,0,0,0.10));
+    }
+    .task-label {
+      text-align: center;
+      font-weight: 800; font-size: 1.1rem; color: #666;
+      margin-bottom: 8px;
+    }
+
+    /* ===== GAME 2: WORD SORT ===== */
+    #game-sort .word-bank {
+      display: flex; flex-wrap: wrap; gap: 10px;
+      margin-bottom: 24px;
+    }
+    .word-chip {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.2rem; padding: 10px 20px;
+      border-radius: 50px; background: #f0f0f0;
+      cursor: grab; user-select: none;
+      border: 3px solid transparent;
+      transition: all 0.15s;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    }
+    .word-chip:hover { transform: scale(1.06); background: #e8e8e8; }
+    .word-chip.used { opacity: 0.35; pointer-events: none; }
+
+    .sort-buckets {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 16px;
+    }
+    .bucket {
+      min-height: 130px; border-radius: 20px;
+      border: 3px dashed #ccc;
+      padding: 12px;
+      transition: border-color 0.2s, background 0.2s;
+      display: flex; flex-direction: column; align-items: center;
+      gap: 8px;
+    }
+    .bucket-label {
+      font-family: 'Fredoka One', cursive;
+      font-size: 2.4rem;
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+    }
+    .bucket.A { border-color: var(--a); }
+    .bucket.A .bucket-label { background: var(--a); }
+    .bucket.E { border-color: var(--e); }
+    .bucket.E .bucket-label { background: var(--e); color: #333; }
+    .bucket.I { border-color: var(--i); }
+    .bucket.I .bucket-label { background: var(--i); }
+    .bucket.O { border-color: var(--o); }
+    .bucket.O .bucket-label { background: var(--o); }
+    .bucket.U { border-color: var(--u); }
+    .bucket.U .bucket-label { background: var(--u); }
+
+    .bucket.drag-over { background: rgba(107,203,119,0.1); border-style: solid; }
+
+    .placed-word {
+      font-family: 'Fredoka One', cursive;
+      font-size: 0.95rem; padding: 4px 10px;
+      border-radius: 20px; color: #fff;
+      background: #aaa;
+    }
+
+    /* ===== GAME 3: LISTEN & CHOOSE ===== */
+    .listen-emoji {
+      font-size: 7rem; text-align: center;
+      margin: 10px 0 6px;
+      filter: drop-shadow(3px 4px 0 rgba(0,0,0,0.08));
+      animation: emojiBounce 0.6s ease;
+    }
+    @keyframes emojiBounce {
+      0%   { transform: scale(0.5) rotate(-10deg); opacity:0; }
+      60%  { transform: scale(1.15) rotate(4deg); }
+      100% { transform: scale(1) rotate(0); opacity:1; }
+    }
+    .listen-word-blur {
+      text-align: center;
+      font-family: 'Fredoka One', cursive;
+      font-size: 2rem;
+      letter-spacing: 6px;
+      color: #ccc;
+      margin-bottom: 18px;
+      filter: blur(5px);
+      transition: filter 0.5s;
+      user-select: none;
+    }
+    .listen-word-blur.revealed { filter: blur(0); color: #555; }
+
+    .speak-btn {
+      display: block; margin: 0 auto 24px;
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.3rem;
+      border: none; border-radius: 50px;
+      padding: 14px 36px;
+      background: linear-gradient(135deg, #4D96FF, #C77DFF);
+      color: #fff; cursor: pointer;
+      box-shadow: 0 6px 20px rgba(77,150,255,0.35);
+      transition: all 0.2s;
+      animation: speakPulse 2s ease-in-out infinite;
+    }
+    .speak-btn:hover { transform: scale(1.06); }
+    @keyframes speakPulse {
+      0%,100% { box-shadow: 0 6px 20px rgba(77,150,255,0.35); }
+      50% { box-shadow: 0 8px 28px rgba(199,125,255,0.55); }
+    }
+
+    .vowel-answer-grid {
+      display: flex; justify-content: center;
+      gap: 14px; flex-wrap: wrap;
+      margin: 10px 0 20px;
+    }
+    .vowel-answer-btn {
+      font-family: 'Fredoka One', cursive;
+      font-size: 2.4rem;
+      width: 72px; height: 72px;
+      border-radius: 50%; border: none;
+      color: #fff; cursor: pointer;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.13);
+      transition: transform 0.18s, box-shadow 0.18s;
+    }
+    .vowel-answer-btn:hover { transform: scale(1.15) rotate(-5deg); }
+    .vowel-answer-btn.btn-A { background: var(--a); }
+    .vowel-answer-btn.btn-E { background: var(--e); color: #333; }
+    .vowel-answer-btn.btn-I { background: var(--i); }
+    .vowel-answer-btn.btn-O { background: var(--o); }
+    .vowel-answer-btn.btn-U { background: var(--u); }
+    .vowel-answer-btn.correct-ans { animation: correctAnim 0.5s ease; }
+    .vowel-answer-btn.wrong-ans  { animation: wrongAnim  0.5s ease; }
+
+    .listen-progress {
+      display: flex; justify-content: center;
+      gap: 6px; margin-bottom: 12px;
+    }
+    .prog-dot {
+      width: 12px; height: 12px; border-radius: 50%;
+      background: #e0e0e0; transition: background 0.3s;
+    }
+    .prog-dot.done { background: #6BCB77; }
+    .prog-dot.current { background: #4D96FF; transform: scale(1.2); }
+
+    /* ===== GAME 4: SPELLING ===== */
+    #game-spell .spell-image {
+      font-size: 6rem; text-align: center;
+      margin: 10px 0;
+      filter: drop-shadow(2px 3px 0 rgba(0,0,0,0.08));
+    }
+    .letter-slots {
+      display: flex; justify-content: center;
+      gap: 8px; flex-wrap: wrap;
+      margin: 20px 0;
+    }
+    .slot {
+      width: 52px; height: 62px;
+      border-radius: 12px;
+      border: 3px solid #ddd;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.8rem;
+      background: #fafafa;
+      transition: border-color 0.2s;
+    }
+    .slot.filled {
+      border-color: var(--o);
+      background: #EFF6FF;
+    }
+    .slot.correct-slot { border-color: #6BCB77; background: #f0fdf4; color: #22c55e; }
+    .slot.wrong-slot { border-color: var(--a); background: #fff1f1; color: var(--a); }
+
+    .letter-choices {
+      display: flex; justify-content: center;
+      flex-wrap: wrap; gap: 10px; margin-top: 10px;
+    }
+    .choice-btn {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.5rem;
+      width: 54px; height: 54px; border-radius: 14px;
+      border: none; cursor: pointer;
+      background: linear-gradient(135deg, #f5f5f5, #e8e8e8);
+      transition: all 0.15s;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+    }
+    .choice-btn:hover { transform: scale(1.1); background: linear-gradient(135deg, #C77DFF, #4D96FF); color: #fff; }
+    .choice-btn:disabled { opacity: 0.3; pointer-events: none; }
+
+    .action-btn {
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800; font-size: 1.05rem;
+      border: none; border-radius: 50px;
+      padding: 12px 28px; cursor: pointer;
+      background: linear-gradient(135deg, #FF6B6B, #C77DFF);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(199,125,255,0.35);
+      transition: all 0.2s; margin-top: 16px;
+    }
+    .action-btn:hover { transform: translateY(-2px) scale(1.03); }
+
+    /* Feedback toast */
+    #feedback-toast {
+      position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(60px);
+      background: #333; color: #fff;
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.3rem;
+      padding: 14px 32px; border-radius: 50px;
+      opacity: 0; pointer-events: none;
+      transition: all 0.3s; z-index: 9999;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    }
+    #feedback-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    #feedback-toast.good { background: linear-gradient(135deg, #6BCB77, #4D96FF); }
+    #feedback-toast.bad { background: linear-gradient(135deg, #FF6B6B, #FFD93D); color: #333; }
+
+    /* Stars display */
+    .stars { font-size: 1.5rem; letter-spacing: 4px; }
+
+    /* Responsive */
+    @media (max-width: 500px) {
+      .sort-buckets { grid-template-columns: repeat(3, 1fr); }
+      .vowel-answer-btn { width: 58px; height: 58px; font-size: 2rem; }
+    }
+
+    /* Chatbot nudge */
+    .chat-nudge {
+      position: fixed; bottom: 30px; right: 90px;
+      background: linear-gradient(135deg, #C77DFF, #4D96FF);
+      color: #fff; font-family: 'Fredoka One', cursive;
+      font-size: 0.9rem;
+      padding: 10px 18px; border-radius: 50px;
+      box-shadow: 0 4px 20px rgba(199,125,255,0.4);
+      z-index: 900;
+      animation: nudgePop 3s ease-in-out 2s both;
+      pointer-events: none;
+    }
+    @keyframes nudgePop {
+      0% { opacity:0; transform: scale(0.7) translateY(10px); }
+      20% { opacity:1; transform: scale(1) translateY(0); }
+      80% { opacity:1; }
+      100% { opacity:0; transform: scale(0.8) translateY(-5px); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Animated background -->
+<div class="bubbles" id="bubbles"></div>
+
+<!-- HEADER -->
+<header>
+  <h1>🌈 Mundo de las Vocales</h1>
+  <p>¡Aprende jugando con A, E, I, O, U!</p>
+  <div class="vowel-pills">
+    <div class="pill A" onclick="speakLetter('A')">A</div>
+    <div class="pill E" onclick="speakLetter('E')">E</div>
+    <div class="pill I" onclick="speakLetter('I')">I</div>
+    <div class="pill O" onclick="speakLetter('O')">O</div>
+    <div class="pill U" onclick="speakLetter('U')">U</div>
+  </div>
+</header>
+
+<!-- TABS -->
+<nav class="tabs">
+  <button class="tab-btn active" onclick="showGame('touch')">🎯 Toca la Vocal</button>
+  <button class="tab-btn" onclick="showGame('sort')">🗂️ Clasifica Palabras</button>
+  <button class="tab-btn" onclick="showGame('listen')">👂 ¿Qué vocal escucho?</button>
+  <button class="tab-btn" onclick="showGame('spell')">✏️ Deletrea</button>
+</nav>
+
+<main>
+
+  <!-- GAME 1: Touch the Vowel -->
+  <div id="game-touch" class="game-section active">
+    <div class="card">
+      <h2>🎯 Toca la Vocal</h2>
+      <div class="subtitle">¡Encuentra y toca todas las letras indicadas!</div>
+      <div class="score-box">⭐ Puntos: <span id="touch-score">0</span></div>
+      <div class="task-label">Encuentra la vocal:</div>
+      <div id="target-vowel-display">A</div>
+      <div class="vowel-grid" id="touch-grid"></div>
+    </div>
+  </div>
+
+  <!-- GAME 2: Word Sort -->
+  <div id="game-sort" class="game-section">
+    <div class="card">
+      <h2>🗂️ Clasifica las Palabras</h2>
+      <div class="subtitle">Arrastra cada palabra al cubo de su vocal inicial</div>
+      <div class="word-bank" id="word-bank"></div>
+      <div class="sort-buckets" id="sort-buckets"></div>
+      <button class="action-btn" onclick="checkSort()">✅ Revisar</button>
+      <button class="action-btn" style="background:linear-gradient(135deg,#6BCB77,#4D96FF); margin-left:8px" onclick="resetSort()">🔄 Nueva ronda</button>
+    </div>
+  </div>
+
+  <!-- GAME 3: Listen & Choose -->
+  <div id="game-listen" class="game-section">
+    <div class="card">
+      <h2>👂 ¿Qué vocal escucho?</h2>
+      <div class="subtitle">Escucha la palabra y elige la vocal con la que empieza</div>
+      <div class="score-box">⭐ Puntos: <span id="listen-score">0</span></div>
+      <div class="listen-progress" id="listen-progress"></div>
+      <div class="listen-emoji" id="listen-emoji">🎧</div>
+      <div class="listen-word-blur" id="listen-word-blur">?????</div>
+      <button class="speak-btn" id="speak-btn" onclick="playListenWord()">🔊 Escuchar palabra</button>
+      <div class="vowel-answer-grid">
+        <button class="vowel-answer-btn btn-A" onclick="answerListen('A')">A</button>
+        <button class="vowel-answer-btn btn-E" onclick="answerListen('E')">E</button>
+        <button class="vowel-answer-btn btn-I" onclick="answerListen('I')">I</button>
+        <button class="vowel-answer-btn btn-O" onclick="answerListen('O')">O</button>
+        <button class="vowel-answer-btn btn-U" onclick="answerListen('U')">U</button>
+      </div>
+      <button class="action-btn" onclick="resetListen()">🔄 Nueva ronda</button>
+    </div>
+  </div>
+
+  <!-- GAME 4: Spelling -->
+  <div id="game-spell" class="game-section">
+    <div class="card">
+      <h2>✏️ Deletrea la Palabra</h2>
+      <div class="subtitle">Elige las letras correctas para formar la palabra</div>
+      <div class="score-box">⭐ Puntos: <span id="spell-score">0</span></div>
+      <div class="spell-image" id="spell-emoji"></div>
+      <div id="spell-hint" style="text-align:center; font-weight:800; font-size:1rem; color:#999; margin-bottom:6px;"></div>
+      <div class="letter-slots" id="letter-slots"></div>
+      <div class="letter-choices" id="letter-choices"></div>
+      <button class="action-btn" onclick="checkSpell()">✅ Comprobar</button>
+      <button class="action-btn" style="background:linear-gradient(135deg,#6BCB77,#4D96FF); margin-left:8px" onclick="nextSpellWord()">➡️ Siguiente</button>
+    </div>
+  </div>
+
+</main>
+
+<!-- Feedback toast -->
+<div id="feedback-toast"></div>
+
+<!-- Chatbot nudge -->
+<div class="chat-nudge">💬 ¿Tienes preguntas? ¡Chatea con Profe!</div>
+
+<!-- Chatbot script -->
+<script src='https://cdn.jotfor.ms/agent/embedjs/019e6617740f7a5e86b105abd65448b86bca/embed.js?autoOpenChatIn=1'></script>
+
+<script>
+// ─── UTILS ───────────────────────────────────────────────
+function speakLetter(letter) {
+  if ('speechSynthesis' in window) {
+    const u = new SpeechSynthesisUtterance(letter);
+    u.lang = 'es-ES'; u.rate = 0.8;
+    speechSynthesis.speak(u);
+  }
+}
+
+function speakWord(word) {
+  if ('speechSynthesis' in window) {
+    const u = new SpeechSynthesisUtterance(word);
+    u.lang = 'es-ES'; u.rate = 0.75;
+    speechSynthesis.speak(u);
+  }
+}
+
+function toast(msg, type = 'good') {
+  const t = document.getElementById('feedback-toast');
+  t.textContent = msg;
+  t.className = 'show ' + type;
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => { t.className = ''; }, 1800);
+}
+
+function showGame(id) {
+  document.querySelectorAll('.game-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('game-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// Floating bubbles
+(function() {
+  const colors = ['#FF6B6B','#FFD93D','#6BCB77','#4D96FF','#C77DFF'];
+  const container = document.getElementById('bubbles');
+  for (let i = 0; i < 18; i++) {
+    const b = document.createElement('div');
+    b.className = 'bubble';
+    const size = 30 + Math.random() * 80;
+    b.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random()*100}%;
+      background:${colors[i%5]};
+      animation-duration:${8+Math.random()*14}s;
+      animation-delay:${Math.random()*10}s;
+    `;
+    container.appendChild(b);
+  }
+})();
+
+// ─── GAME 1: TOUCH THE VOWEL ─────────────────────────────
+const VOWELS = ['A','E','I','O','U'];
+const ALL_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+const VOWEL_COLORS = { A: '#FF6B6B', E: '#FFD93D', I: '#6BCB77', O: '#4D96FF', U: '#C77DFF' };
+
+let touchScore = 0;
+let targetVowel = 'A';
+
+function initTouch() {
+  const grid = document.getElementById('touch-grid');
+  grid.innerHTML = '';
+  // Pick random letters including 3–5 instances of target vowel
+  const letters = [];
+  const count = 3 + Math.floor(Math.random() * 2);
+  for (let i = 0; i < count; i++) letters.push(targetVowel);
+  const others = ALL_LETTERS.filter(l => !VOWELS.includes(l));
+  while (letters.length < 18) {
+    const r = others[Math.floor(Math.random() * others.length)];
+    letters.push(r);
+  }
+  letters.sort(() => Math.random() - 0.5);
+
+  letters.forEach(l => {
+    const btn = document.createElement('button');
+    btn.className = 'letter-btn' + (VOWELS.includes(l) ? ' vowel-yes' : '');
+    btn.textContent = l;
+    btn.onclick = () => handleTouchClick(btn, l);
+    grid.appendChild(btn);
+  });
+}
+
+function handleTouchClick(btn, letter) {
+  if (letter === targetVowel) {
+    btn.classList.add('correct-flash');
+    btn.disabled = true;
+    touchScore += 10;
+    document.getElementById('touch-score').textContent = touchScore;
+    speakLetter(letter);
+    toast('¡Muy bien! 🎉', 'good');
+    // Check if all found
+    const remaining = [...document.querySelectorAll('#touch-grid .letter-btn:not(:disabled)')];
+    const hasMore = remaining.some(b => b.textContent === targetVowel);
+    if (!hasMore) {
+      setTimeout(() => {
+        newTargetVowel();
+        toast('¡Todas encontradas! Nueva vocal 🌟', 'good');
+      }, 800);
+    }
+  } else {
+    btn.classList.add('wrong-flash');
+    setTimeout(() => btn.classList.remove('wrong-flash'), 500);
+    toast('¡Esa no! Busca la ' + targetVowel, 'bad');
+  }
+}
+
+function newTargetVowel() {
+  const idx = Math.floor(Math.random() * 5);
+  targetVowel = VOWELS[idx];
+  const disp = document.getElementById('target-vowel-display');
+  disp.textContent = targetVowel;
+  disp.style.color = VOWEL_COLORS[targetVowel];
+  speakLetter(targetVowel);
+  initTouch();
+}
+
+// ─── GAME 2: WORD SORT ────────────────────────────────────
+const SORT_WORDS = [
+  { word: 'ABEJA', vowel: 'A', emoji: '🐝' },
+  { word: 'AVIÓN', vowel: 'A', emoji: '✈️' },
+  { word: 'ÁRBOL', vowel: 'A', emoji: '🌳' },
+  { word: 'ELEFANTE', vowel: 'E', emoji: '🐘' },
+  { word: 'ESTRELLA', vowel: 'E', emoji: '⭐' },
+  { word: 'IGLÚ', vowel: 'I', emoji: '🏠' },
+  { word: 'IMÁN', vowel: 'I', emoji: '🧲' },
+  { word: 'OSO', vowel: 'O', emoji: '🐻' },
+  { word: 'OJO', vowel: 'O', emoji: '👁️' },
+  { word: 'UVA', vowel: 'U', emoji: '🍇' },
+  { word: 'UNICORNIO', vowel: 'U', emoji: '🦄' },
+  { word: 'ERIZO', vowel: 'E', emoji: '🦔' },
+  { word: 'ARCO IRIS', vowel: 'A', emoji: '🌈' },
+  { word: 'ORCA', vowel: 'O', emoji: '🐋' },
+];
+
+let sortState = {};
+
+function resetSort() {
+  sortState = {};
+  const bank = document.getElementById('word-bank');
+  const buckets = document.getElementById('sort-buckets');
+  bank.innerHTML = '';
+  buckets.innerHTML = '';
+
+  // Pick 8 random words
+  const picked = [...SORT_WORDS].sort(() => Math.random() - 0.5).slice(0, 8);
+
+  picked.forEach(item => {
+    sortState[item.word] = { correctVowel: item.vowel, placed: null };
+    const chip = document.createElement('div');
+    chip.className = 'word-chip';
+    chip.textContent = item.emoji + ' ' + item.word;
+    chip.id = 'chip-' + item.word;
+    chip.draggable = true;
+    chip.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', item.word);
+      chip.style.opacity = '0.5';
+    });
+    chip.addEventListener('dragend', () => chip.style.opacity = '1');
+    chip.addEventListener('click', () => assignWordToActive(item.word));
+    bank.appendChild(chip);
+  });
+
+  VOWELS.forEach(v => {
+    const bucket = document.createElement('div');
+    bucket.className = `bucket ${v}`;
+    bucket.id = 'bucket-' + v;
+    bucket.innerHTML = `<div class="bucket-label">${v}</div>`;
+    bucket.addEventListener('dragover', e => { e.preventDefault(); bucket.classList.add('drag-over'); });
+    bucket.addEventListener('dragleave', () => bucket.classList.remove('drag-over'));
+    bucket.addEventListener('drop', e => {
+      e.preventDefault();
+      bucket.classList.remove('drag-over');
+      const word = e.dataTransfer.getData('text/plain');
+      placeWord(word, v);
+    });
+    buckets.appendChild(bucket);
+  });
+}
+
+let activeWord = null;
+function assignWordToActive(word) { /* mobile tap fallback – tap word then tap bucket */ }
+
+function placeWord(word, vowel) {
+  if (!sortState[word]) return;
+  // Remove from old bucket if placed
+  if (sortState[word].placed) {
+    const old = document.querySelector(`#bucket-${sortState[word].placed} [data-word="${word}"]`);
+    if (old) old.remove();
+  }
+  sortState[word].placed = vowel;
+
+  const chip = document.getElementById('chip-' + word);
+  if (chip) chip.classList.add('used');
+
+  const bucket = document.getElementById('bucket-' + vowel);
+  const placed = document.createElement('div');
+  placed.className = 'placed-word';
+  placed.dataset.word = word;
+  placed.textContent = word.length > 8 ? word.slice(0,7)+'…' : word;
+  placed.title = word;
+  placed.onclick = () => {
+    placed.remove();
+    sortState[word].placed = null;
+    chip.classList.remove('used');
+  };
+  bucket.appendChild(placed);
+  speakWord(word);
+}
+
+function checkSort() {
+  let correct = 0; let total = 0;
+  Object.entries(sortState).forEach(([word, data]) => {
+    if (data.placed) {
+      total++;
+      if (data.placed === data.correctVowel) correct++;
+    }
+  });
+  if (total === 0) { toast('¡Arrastra palabras primero! 👆', 'bad'); return; }
+  toast(`✅ ${correct} de ${total} correctas!`, correct === total ? 'good' : 'bad');
+  speakWord(correct === total ? '¡Excelente!' : `${correct} de ${total} correctas`);
+}
+
+// ─── GAME 3: LISTEN & CHOOSE ─────────────────────────────
+const LISTEN_WORDS = [
+  { word: 'ABEJA',     emoji: '🐝',  vowel: 'A' },
+  { word: 'AVIÓN',     emoji: '✈️',  vowel: 'A' },
+  { word: 'ÁRBOL',     emoji: '🌳',  vowel: 'A' },
+  { word: 'ARCOÍRIS',  emoji: '🌈',  vowel: 'A' },
+  { word: 'ELEFANTE',  emoji: '🐘',  vowel: 'E' },
+  { word: 'ESTRELLA',  emoji: '⭐',  vowel: 'E' },
+  { word: 'ERIZO',     emoji: '🦔',  vowel: 'E' },
+  { word: 'IGLÚ',      emoji: '🏠',  vowel: 'I' },
+  { word: 'IMÁN',      emoji: '🧲',  vowel: 'I' },
+  { word: 'IGUANA',    emoji: '🦎',  vowel: 'I' },
+  { word: 'OSO',       emoji: '🐻',  vowel: 'O' },
+  { word: 'OJO',       emoji: '👁️',  vowel: 'O' },
+  { word: 'ORCA',      emoji: '🐋',  vowel: 'O' },
+  { word: 'UVA',       emoji: '🍇',  vowel: 'U' },
+  { word: 'UNICORNIO', emoji: '🦄',  vowel: 'U' },
+  { word: 'UNO',       emoji: '1️⃣',  vowel: 'U' },
+];
+
+const ROUND_SIZE = 8;
+let listenQueue = [];
+let listenIdx = 0;
+let listenScore = 0;
+let listenAnswered = false;
+
+function resetListen() {
+  listenScore = 0;
+  document.getElementById('listen-score').textContent = '0';
+  listenQueue = [...LISTEN_WORDS].sort(() => Math.random() - 0.5).slice(0, ROUND_SIZE);
+  listenIdx = 0;
+  listenAnswered = false;
+  buildProgress();
+  loadListenWord();
+}
+
+function buildProgress() {
+  const bar = document.getElementById('listen-progress');
+  bar.innerHTML = '';
+  listenQueue.forEach((_, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'prog-dot' + (i === 0 ? ' current' : '');
+    dot.id = 'pdot-' + i;
+    bar.appendChild(dot);
+  });
+}
+
+function loadListenWord() {
+  listenAnswered = false;
+  document.querySelectorAll('.vowel-answer-btn').forEach(b => { b.disabled = false; b.style.opacity = '1'; });
+  const item = listenQueue[listenIdx];
+  const emojiEl = document.getElementById('listen-emoji');
+  const blurEl  = document.getElementById('listen-word-blur');
+  emojiEl.textContent = '🎧';
+  emojiEl.style.animation = 'none'; void emojiEl.offsetWidth; emojiEl.style.animation = '';
+  blurEl.textContent = item.word;
+  blurEl.classList.remove('revealed');
+  // Update progress dots
+  document.querySelectorAll('.prog-dot').forEach((d, i) => {
+    d.className = 'prog-dot' + (i < listenIdx ? ' done' : i === listenIdx ? ' current' : '');
+  });
+}
+
+function playListenWord() {
+  const item = listenQueue[listenIdx];
+  speakWord(item.word);
+}
+
+function answerListen(chosen) {
+  if (listenAnswered) return;
+  listenAnswered = true;
+  const item = listenQueue[listenIdx];
+  const correct = chosen === item.vowel;
+
+  // Reveal emoji & word
+  document.getElementById('listen-emoji').textContent = item.emoji;
+  document.getElementById('listen-word-blur').classList.add('revealed');
+
+  // Highlight button
+  document.querySelectorAll('.vowel-answer-btn').forEach(b => {
+    b.disabled = true;
+    if (b.classList.contains('btn-' + item.vowel)) b.style.opacity = '1';
+    else b.style.opacity = '0.35';
+  });
+
+  if (correct) {
+    listenScore += 10;
+    document.getElementById('listen-score').textContent = listenScore;
+    toast('¡Correcto! 🎉 ' + item.word + ' con ' + item.vowel, 'good');
+    speakWord('¡Muy bien!');
+    document.getElementById('pdot-' + listenIdx).className = 'prog-dot done';
+  } else {
+    toast('¡Era ' + item.vowel + ' de ' + item.word + '! 🤔', 'bad');
+    speakWord('Intenta otra vez');
+  }
+
+  setTimeout(() => {
+    listenIdx++;
+    if (listenIdx >= listenQueue.length) {
+      toast('🏆 ¡Ronda terminada! ' + listenScore + ' puntos', 'good');
+      speakWord('¡Felicitaciones! Terminaste la ronda.');
+    } else {
+      loadListenWord();
+    }
+  }, 1600);
+}
+
+// ─── GAME 4: SPELLING ────────────────────────────────────
+const SPELL_WORDS = [
+  { word: 'AVIÓN', emoji: '✈️', hint: 'Vuela en el cielo' },
+  { word: 'ELEFANTE', emoji: '🐘', hint: 'Animal grande con trompa' },
+  { word: 'IGLÚ', emoji: '🏠', hint: 'Casa de hielo' },
+  { word: 'OSO', emoji: '🐻', hint: 'Animal del bosque' },
+  { word: 'UVA', emoji: '🍇', hint: 'Fruta morada' },
+  { word: 'ABEJA', emoji: '🐝', hint: 'Hace miel' },
+  { word: 'OJO', emoji: '👁️', hint: 'Para ver' },
+  { word: 'IMÁN', emoji: '🧲', hint: 'Atrae el metal' },
+  { word: 'UNO', emoji: '1️⃣', hint: 'Primer número' },
+  { word: 'ÁRBOL', emoji: '🌳', hint: 'Tiene hojas y ramas' },
+];
+let spellIdx = 0;
+let spellAnswer = [];
+let spellScore = 0;
+
+function nextSpellWord() {
+  spellIdx = (spellIdx + 1) % SPELL_WORDS.length;
+  loadSpellWord();
+}
+
+function loadSpellWord() {
+  spellAnswer = [];
+  const item = SPELL_WORDS[spellIdx];
+  document.getElementById('spell-emoji').textContent = item.emoji;
+  document.getElementById('spell-hint').textContent = '💡 ' + item.hint;
+  speakWord(item.word);
+
+  // Slots
+  const slots = document.getElementById('letter-slots');
+  slots.innerHTML = '';
+  item.word.split('').forEach((_, i) => {
+    const slot = document.createElement('div');
+    slot.className = 'slot';
+    slot.id = 'slot-' + i;
+    slots.appendChild(slot);
+  });
+
+  // Shuffled letter choices (word letters + 3 distractors)
+  const letters = item.word.split('');
+  const distractors = 'BCDFGHJKLMNPQRSTVWXYZ'.split('').filter(l => !letters.includes(l));
+  const extra = distractors.sort(() => Math.random() - 0.5).slice(0, 3);
+  const all = [...letters, ...extra].sort(() => Math.random() - 0.5);
+
+  const choices = document.getElementById('letter-choices');
+  choices.innerHTML = '';
+  all.forEach(l => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.textContent = l;
+    btn.onclick = () => pickLetter(btn, l);
+    choices.appendChild(btn);
+  });
+}
+
+function pickLetter(btn, letter) {
+  const item = SPELL_WORDS[spellIdx];
+  const wordLen = item.word.length;
+  if (spellAnswer.length >= wordLen) return;
+  spellAnswer.push({ letter, btn });
+  const slot = document.getElementById('slot-' + (spellAnswer.length - 1));
+  slot.textContent = letter;
+  slot.classList.add('filled');
+  btn.disabled = true;
+  if (spellAnswer.length === wordLen) {
+    // Auto-check
+    setTimeout(checkSpell, 300);
+  }
+}
+
+function checkSpell() {
+  const item = SPELL_WORDS[spellIdx];
+  const target = item.word.split('');
+  let correct = true;
+  spellAnswer.forEach((ans, i) => {
+    const slot = document.getElementById('slot-' + i);
+    if (ans.letter === target[i]) {
+      slot.classList.add('correct-slot');
+    } else {
+      slot.classList.add('wrong-slot');
+      correct = false;
+    }
+  });
+  if (correct && spellAnswer.length === target.length) {
+    spellScore += 15;
+    document.getElementById('spell-score').textContent = spellScore;
+    toast('¡CORRECTO! 🎊 +15 puntos', 'good');
+    speakWord('¡Muy bien!');
+    setTimeout(nextSpellWord, 1500);
+  } else if (spellAnswer.length === target.length) {
+    toast('¡Casi! La respuesta es: ' + item.word, 'bad');
+    setTimeout(() => {
+      spellAnswer = [];
+      loadSpellWord();
+    }, 2000);
+  } else {
+    toast('¡Elige todas las letras! 👆', 'bad');
+  }
+}
+
+// ─── INIT ─────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  newTargetVowel();
+  resetSort();
+  resetListen();
+  loadSpellWord();
+});
+</script>
+</body>
+</html>
